@@ -41,4 +41,16 @@ public class CustomMatrix {
         return middleVector;
     }
 
+    public double scalarProduct(double[] vA, double[] vB){
+        double scalarProduct = vA[0] * vB[0] + vA[1] * vB[1] + vA[2] * vB[2] ;
+        return scalarProduct;
+    }
+
+    public boolean isFrontFace(double[][] triangle){
+        double[] crossProduct = crossProduct(triangle[0], triangle[1]);
+        double[] zAxis = {0,0,1};
+        return 0 < scalarProduct(crossProduct, zAxis);
+
+    }
+
 }

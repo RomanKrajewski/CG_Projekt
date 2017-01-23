@@ -36,7 +36,7 @@ public class Project extends AbstractSimpleBase {
         shader = new ShaderProgram("phong");
         shapeGenerator = new ShapeGenerator();
         matrix = new CustomMatrix();
-        sphereCoordinates = shapeGenerator.generateSphere(3);
+        sphereCoordinates = shapeGenerator.generateSphere(2);
         tetraederCoordinates = shapeGenerator.generateTetraeder();
         timeOfLastFrame = System.currentTimeMillis();
     }

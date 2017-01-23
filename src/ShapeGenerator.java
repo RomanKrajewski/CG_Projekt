@@ -26,8 +26,23 @@ public class ShapeGenerator {
         tetraeder[2] = bottom;
         tetraeder[3] = front;
         return tetraeder;
+    }
 
-
+    public double[][][] sphereFaceTest(int resolution){
+        double[][][] triangles = new double[1][][];
+        double[][][] sphere;
+        double[] pointA = {0, 1, 0};
+        double[] pointB = {1, 0, 0};
+        double[] pointC = {-1, 0, 0};
+        double[][] innerTriangle1 = {pointA, pointB, pointC};
+        triangles[0] = innerTriangle1;
+        sphere = divideTriangles(triangles, resolution);
+        for (int i = 0; i < sphere.length; i++) {
+            for (int j = 0; j < sphere[i].length; j++) {
+                sphere[i][j] = matrix.normalize(sphere[i][j]);
+            }
+        }
+        return sphere;
     }
 
     public double[][][] generateSphere(int resolution) {
@@ -39,7 +54,7 @@ public class ShapeGenerator {
         double[] pointD = {-1, 0, 0};
         double[] pointE = {0, 0, -1};
         double[] pointF = {0, -1, 0};
-        double[][] innerTriangle1 = {pointB, pointA, pointC};
+        double[][] innerTriangle1 = {pointA, pointB, pointC};
         double[][] innerTriangle2 = {pointC, pointA, pointD};
         double[][] innerTriangle3 = {pointA, pointE, pointD};
         double[][] innerTriangle4 = {pointA, pointB, pointE};
