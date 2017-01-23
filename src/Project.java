@@ -1,9 +1,11 @@
 import lenz.opengl.AbstractSimpleBase;
 import lenz.opengl.utils.ShaderProgram;
 import lenz.opengl.utils.Texture;
+import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.Display;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL20.glUseProgram;
+import static org.lwjgl.opengl.GL20.*;
 
 public class Project extends AbstractSimpleBase {
 
@@ -13,7 +15,13 @@ public class Project extends AbstractSimpleBase {
     private double[][][] tetraederCoordinates;
     private ShapeGenerator shapeGenerator;
     private int[] backgroundcolor = {20, 20, 20};
-    int timeIndex = 12; //TODO: implement some sort of time dependency
+
+    boolean rotate;
+    double currentRotateAngle = 0;
+    boolean translate;
+    double currentTranslation = 0;
+
+
     long timeSinceLastFrame;
     long timeOfLastFrame;
     int colorGradientTime;
@@ -27,7 +35,7 @@ public class Project extends AbstractSimpleBase {
     @Override
     protected void initOpenGL() {
         glMatrixMode(GL_PROJECTION);
-        glFrustum(-16 / 9., 16 / 9., -1, 1, 1, 100);
+        glFrustum(-16 / 9., 16 / 9., -1, 1, 3, 20);
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_2D);
@@ -36,7 +44,7 @@ public class Project extends AbstractSimpleBase {
         shader = new ShaderProgram("phong");
         shapeGenerator = new ShapeGenerator();
         matrix = new CustomMatrix();
-        sphereCoordinates = shapeGenerator.generateSphere(3);
+        sphereCoordinates = shapeGenerator.generateSphere(4);
         tetraederCoordinates = shapeGenerator.generateTetraeder();
         timeOfLastFrame = System.currentTimeMillis();
     }
@@ -49,15 +57,37 @@ public class Project extends AbstractSimpleBase {
         handleTime();
 
         glLoadIdentity();
-
-        glTranslated(0, 0, -2 - 10 * Math.abs(Math.sin(colorGradientTime / 1000.)));
-        glRotated(colorGradientTime / 10., 2, 1, 1);
+        handleMouse();
+        glTranslated(0, 0, -4 - 10*(Math.abs(Math.sin(currentTranslation))));
+        glRotated(currentRotateAngle, 2, 1, 1);
         drawSphere(1);
-        glTranslated(0,0,1);
+        glTranslated(0,0,1.2);
         glScaled(0.4,0.4,0.4);
-
+        glRotated(currentRotateAngle,0,0,1);
         glRotated(60,1,0,0);
+
         drawTetraeder(1);
+    }
+
+
+    private void handleMouse(){
+
+        float mouseX = ((Mouse.getX()-Display.getWidth()/2)/(float)Display.getWidth())*3;
+        float mouseY = ((Mouse.getY()-Display.getHeight()/2)/(float)Display.getHeight())*2;
+        int loc1 = glGetUniformLocation(shader.getId(), "lightPosition");
+        glUniform2f(loc1, mouseX, mouseY);
+
+//        glTranslated(mouseX,mouseY,0);
+    }
+
+    private void handleTime() {
+        long timeOfThisframe = System.currentTimeMillis();
+        timeSinceLastFrame = timeOfThisframe - timeOfLastFrame;
+        timeOfLastFrame = timeOfThisframe;
+
+        colorGradientTime += (int) timeSinceLastFrame / 100;
+        currentRotateAngle += timeSinceLastFrame/10.;
+        currentTranslation += timeSinceLastFrame/1000.;
     }
 
     private void drawSphere(int sphereNumber) {
@@ -95,7 +125,7 @@ public class Project extends AbstractSimpleBase {
     }
 
     private void drawTriangleNormalByPlane(double triangle[][]) {
-        double[] normalVector = matrix.crossProduct( matrix.directionVector(triangle[2], triangle[0]),matrix.directionVector(triangle[1], triangle[0]));
+        double[] normalVector = matrix.crossProduct( matrix.directionVector(triangle[0], triangle[1]),matrix.directionVector(triangle[1], triangle[2]));
         glNormal3d(normalVector[0], normalVector[1], normalVector[2]);
         glVertex3d(triangle[0][0], triangle[0][1], triangle[0][2]);
 
@@ -104,16 +134,6 @@ public class Project extends AbstractSimpleBase {
 
         glNormal3d(normalVector[0], normalVector[1], normalVector[2]);
         glVertex3d(triangle[2][0], triangle[2][1], triangle[2][2]);
-
-    }
-
-    private void handleTime() {
-        long timeOfThisframe = System.currentTimeMillis();
-        timeSinceLastFrame = timeOfThisframe - timeOfLastFrame;
-        timeOfLastFrame = timeOfThisframe;
-
-
-        colorGradientTime += (int) timeSinceLastFrame;
 
     }
 
@@ -128,8 +148,8 @@ public class Project extends AbstractSimpleBase {
                 {{125, 138, 46}, {46, 215, 135}, {255, 255, 255}, {255, 192, 169}, {255, 133, 152}},// pinkAndGreen
                 {{0, 38, 28}, {4, 76, 41}, {22, 127, 57}, {69, 191, 85}, {150, 237, 137}},//leekparadise
         };
-        double alpha = ((colorGradientTime / 100 + offset) % 60) / 60f;
-        int colorCurrent = (((colorGradientTime / 100 + offset) / 60) + offset) % 5;
+        double alpha = ((colorGradientTime  + offset) % 60) / 60f;
+        int colorCurrent = (((colorGradientTime + offset) / 60) + offset) % 5;
 
         int rA = colors[colorChoice][colorCurrent][0];
         int gA = colors[colorChoice][colorCurrent][1];
