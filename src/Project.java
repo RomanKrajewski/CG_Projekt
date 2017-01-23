@@ -44,7 +44,7 @@ public class Project extends AbstractSimpleBase {
         shader = new ShaderProgram("phong");
         shapeGenerator = new ShapeGenerator();
         matrix = new CustomMatrix();
-        sphereCoordinates = shapeGenerator.generateSphere(4);
+        sphereCoordinates = shapeGenerator.generateSphere(3);
         tetraederCoordinates = shapeGenerator.generateTetraeder();
         timeOfLastFrame = System.currentTimeMillis();
     }
@@ -76,8 +76,6 @@ public class Project extends AbstractSimpleBase {
         float mouseY = ((Mouse.getY()-Display.getHeight()/2)/(float)Display.getHeight())*2;
         int loc1 = glGetUniformLocation(shader.getId(), "lightPosition");
         glUniform2f(loc1, mouseX, mouseY);
-
-//        glTranslated(mouseX,mouseY,0);
     }
 
     private void handleTime() {
@@ -85,7 +83,7 @@ public class Project extends AbstractSimpleBase {
         timeSinceLastFrame = timeOfThisframe - timeOfLastFrame;
         timeOfLastFrame = timeOfThisframe;
 
-        colorGradientTime += (int) timeSinceLastFrame / 100;
+        colorGradientTime += (int) (timeSinceLastFrame / 10.);
         currentRotateAngle += timeSinceLastFrame/10.;
         currentTranslation += timeSinceLastFrame/1000.;
     }
@@ -149,6 +147,7 @@ public class Project extends AbstractSimpleBase {
                 {{0, 38, 28}, {4, 76, 41}, {22, 127, 57}, {69, 191, 85}, {150, 237, 137}},//leekparadise
         };
         double alpha = ((colorGradientTime  + offset) % 60) / 60f;
+
         int colorCurrent = (((colorGradientTime + offset) / 60) + offset) % 5;
 
         int rA = colors[colorChoice][colorCurrent][0];
