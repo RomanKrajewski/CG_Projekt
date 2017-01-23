@@ -8,7 +8,7 @@ public abstract class AbstractSimpleBase {
 	public void start() {
 
 		try {
-			Display.setDisplayMode(new DisplayMode(800, 600));
+			Display.setDisplayMode(new DisplayMode(1920, 1080));
 			Display.create();
 		} catch (LWJGLException e) {
 			throw new RuntimeException("Unable to intialize display", e);
