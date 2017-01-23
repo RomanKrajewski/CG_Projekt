@@ -1,9 +1,10 @@
 varying vec4 color;
-varying vec3 light = vec3(0.2,0.2,0);
+varying vec3 light = vec3(0,0,0);
+vec3 normal = -gl_Normal;
 void main(void){
 	vec4 position = gl_ModelViewMatrix*gl_Vertex;
 	vec3 L = normalize(position.xyz - light);
-	vec3 N = normalize(gl_NormalMatrix*(-gl_Normal));
+	vec3 N = normalize(gl_NormalMatrix*(normal));
 	vec3 R = normalize(-reflect(N,L));
 	vec3 V = normalize(-position.xyz);
 	float Id = max(dot(L,N),0.0);

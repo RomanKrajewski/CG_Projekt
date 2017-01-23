@@ -5,8 +5,29 @@ public class ShapeGenerator {
 
     private CustomMatrix matrix;
 
-    public ShapeGenerator(){
+    public ShapeGenerator() {
         matrix = new CustomMatrix();
+    }
+
+
+    public double[][][] generateTetraeder() {
+        double oneDividedbysqrt2 = 1 / Math.sqrt(2);
+        double[] triangleA = {1, 0, -oneDividedbysqrt2};
+        double[] triangleB = {-1, 0, -oneDividedbysqrt2};
+        double[] triangleC = {0, 1, oneDividedbysqrt2};
+        double[] triangleD = {0, -1, oneDividedbysqrt2};
+        double[][][] tetraeder = new double[4][][];
+        double[][] left = {triangleD, triangleA, triangleC};
+        double[][] right = {triangleB, triangleD, triangleC};
+        double[][] bottom = {triangleA, triangleD, triangleB};
+        double[][] front = {triangleA, triangleB, triangleC};
+        tetraeder[0] = left;
+        tetraeder[1] = right;
+        tetraeder[2] = bottom;
+        tetraeder[3] = front;
+        return tetraeder;
+
+
     }
 
     public double[][][] generateSphere(int resolution) {
@@ -85,7 +106,6 @@ public class ShapeGenerator {
         newTriangles[3][2] = matrix.getMiddleBetweenTwoVectors(triangle[1], triangle[2]);
         return newTriangles;
     }
-
 
 
 }
