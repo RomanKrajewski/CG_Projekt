@@ -26,29 +26,9 @@ class ShapeGeneratorTest {
     }
 
     @Test
-    void testScalarProduct(){
-        boolean isScalarProductOfFrontFacingTriangleGreaterThanZero = 0 < matrix.scalarProduct(frontFacingTriangle[0], frontFacingTriangle[1]);
-        boolean isScalarProductOfBackFacingTriangleGreaterThanZero = 0 < matrix.scalarProduct(backFacingTriangle[0],backFacingTriangle[1]);
-        assertEquals(isScalarProductOfBackFacingTriangleGreaterThanZero,isScalarProductOfFrontFacingTriangleGreaterThanZero);
+    void isFrontFaceFail(){
+        assertEquals(false, matrix.isFrontFace(backFacingTriangle));
     }
-
-    @Test
-    void testSphereFace(){
-        double[][][] sphere = shapeGenerator.sphereFaceTest(2);
-        boolean isScalarProductOfSphereGreaterThanZero =  0 < matrix.scalarProduct(sphere[0][0],sphere[0][1]);
-        boolean isScalarProductOfTriangleGreaterThanZero = 0 < matrix.scalarProduct(frontFacingTriangle[0], frontFacingTriangle[1]);
-        assertEquals(isScalarProductOfSphereGreaterThanZero, isScalarProductOfTriangleGreaterThanZero);
-    }
-
-    @Test
-    void testSphereFaceUneven(){
-        double[][][] sphere = shapeGenerator.sphereFaceTest(3);
-        boolean isScalarProductOfSphereGreaterThanZero =  0 < matrix.scalarProduct(sphere[0][0],sphere[0][1]);
-        boolean isScalarProductOfTriangleGreaterThanZero = 0 < matrix.scalarProduct(frontFacingTriangle[0], frontFacingTriangle[1]);
-        assertEquals(isScalarProductOfSphereGreaterThanZero, isScalarProductOfTriangleGreaterThanZero);
-    }
-
-
 
     @AfterEach
     void tearDown() {

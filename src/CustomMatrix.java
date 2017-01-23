@@ -47,9 +47,9 @@ public class CustomMatrix {
     }
 
     public boolean isFrontFace(double[][] triangle){
-        double[] crossProduct = crossProduct(triangle[0], triangle[1]);
+        double[] crossProduct = crossProduct(directionVector(triangle[0], triangle[1]),directionVector(triangle[1], triangle[2]));
         double[] zAxis = {0,0,1};
-        return 0 < scalarProduct(crossProduct, zAxis);
+        return 0 > scalarProduct(crossProduct, zAxis);
 
     }
 
