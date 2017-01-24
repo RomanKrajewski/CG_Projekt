@@ -65,7 +65,35 @@ public class ShapeGenerator {
         return sphere;
     }
 
+    public double[][][] generateSphereTexCoords(double[][][] sphere) {
+        double result[][][] = new double[sphere.length][][];
+        for (int i = 0; i < sphere.length; i++) {
+            result[i] = new double[sphere[i].length][];
+            for (int j = 0; j < sphere[i].length; j++) {
+                result[i][j] = getSphereTexCoords(sphere[i][j]);
+                }
+            if(Math.abs(result[i][0][0]-result[i][1][0]) > 0.5 || Math.abs(result[i][1][0]-result[i][2][0]) > 0.5
+                    ){
+                result[i] = result[i-1];
+            }
+        }
+        return result;
+    }
 
+
+    private double[] getSphereTexCoords(double[] vector) {
+        double x = vector[0];
+        double y = vector[1];
+        double z = vector[2];
+        double u = 0;
+        double v = 0;
+
+        u = 1- (Math.atan2(x,z) / (2*Math.PI) + 0.5);
+        v = (Math.asin(y) + Math.PI/2)/ (2*Math.PI);
+
+        double[] result = {u,0.5- v};
+        return result;
+    }
 
 
     private double[][][] divideTriangles(double[][][] triangles, int timesToDivide) {
