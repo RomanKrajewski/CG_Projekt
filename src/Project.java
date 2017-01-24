@@ -1,6 +1,7 @@
 import lenz.opengl.AbstractSimpleBase;
 import lenz.opengl.utils.ShaderProgram;
 import lenz.opengl.utils.Texture;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
@@ -12,6 +13,7 @@ public class Project extends AbstractSimpleBase {
     private Texture texture;
     private ShaderProgram shader;
     private double[][][] sphereCoordinates;
+    private double[][][] sphereTextureCoordinates;
     private double[][][] tetraederCoordinates;
     private ShapeGenerator shapeGenerator;
     private int[] backgroundcolor = {20, 20, 20};
@@ -20,6 +22,12 @@ public class Project extends AbstractSimpleBase {
     double currentRotateAngle = 0;
     boolean translate;
     double currentTranslation = 0;
+    double rotateAllXAngle;
+    double rotateAllYAngle;
+    double rotateAllZAngle;
+    double translateAllXDistance;
+    double translateAllYDistance;
+    double translateAllZDistance;
 
 
     long timeSinceLastFrame;
@@ -42,9 +50,10 @@ public class Project extends AbstractSimpleBase {
         glMatrixMode(GL_MODELVIEW);
         glShadeModel(GL_SMOOTH);
         shader = new ShaderProgram("phong");
+        texture = new Texture("planet1.png");
         shapeGenerator = new ShapeGenerator();
         matrix = new CustomMatrix();
-        sphereCoordinates = shapeGenerator.generateSphere(3);
+        sphereCoordinates = shapeGenerator.generateSphere(4);
         tetraederCoordinates = shapeGenerator.generateTetraeder();
         timeOfLastFrame = System.currentTimeMillis();
     }
@@ -53,30 +62,53 @@ public class Project extends AbstractSimpleBase {
     protected void render() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(backgroundcolor[0] / 255f, backgroundcolor[1] / 255f, backgroundcolor[2] / 255f, 1);
-        glUseProgram(shader.getId());
+//        glUseProgram(shader.getId());
+        glBindTexture(GL_TEXTURE_2D, texture.getId());
         handleTime();
 
         glLoadIdentity();
         handleMouse();
-        glTranslated(0, 0, -4 - 10*(Math.abs(Math.sin(currentTranslation))));
+        glTranslated(0, 0, -4 - 10 * (Math.abs(Math.sin(currentTranslation))));
         glRotated(currentRotateAngle, 2, 1, 1);
         drawSphere(1);
-        glTranslated(0,0,1.2);
-        glScaled(0.4,0.4,0.4);
-        glRotated(currentRotateAngle,0,0,1);
-        glRotated(60,1,0,0);
+        glTranslated(0, 0, 1.2);
+        glScaled(0.4, 0.4, 0.4);
+        glRotated(currentRotateAngle, 0, 0, 1);
+        glRotated(60, 1, 0, 0);
 
         drawTetraeder(1);
     }
 
 
-    private void handleMouse(){
+    private void handleMouse() {
 
-        float mouseX = ((Mouse.getX()-Display.getWidth()/2)/(float)Display.getWidth())*3;
-        float mouseY = ((Mouse.getY()-Display.getHeight()/2)/(float)Display.getHeight())*2;
+        float mouseX = ((Mouse.getX() - Display.getWidth() / 2) / (float) Display.getWidth()) * 3;
+        float mouseY = ((Mouse.getY() - Display.getHeight() / 2) / (float) Display.getHeight()) * 2;
         int loc1 = glGetUniformLocation(shader.getId(), "lightPosition");
         glUniform2f(loc1, mouseX, mouseY);
     }
+
+    private void handleKeyboard(){
+        if(Keyboard.isKeyDown(Keyboard.KEY_W)){
+            translateAllZDistance -= 0.1;
+        }
+        if(Keyboard.isKeyDown(Keyboard.KEY_S)){
+            translateAllZDistance -= 0.1;
+        }
+        if(Keyboard.isKeyDown(Keyboard.KEY_A)){
+            translateAllXDistance -= 0.1;
+        }
+        if(Keyboard.isKeyDown(Keyboard.KEY_S)){
+            translateAllXDistance += 0.1;
+        }
+        if(Keyboard.isKeyDown(Keyboard.KEY_J)){
+            rotateAllYAngle -= 0.1;
+        }
+        if(Keyboard.isKeyDown(Keyboard.KEY_L)){
+            rotateAllYAngle += 0.1;
+        }
+    }
+
 
     private void handleTime() {
         long timeOfThisframe = System.currentTimeMillis();
@@ -84,14 +116,15 @@ public class Project extends AbstractSimpleBase {
         timeOfLastFrame = timeOfThisframe;
 
         colorGradientTime += (int) (timeSinceLastFrame / 10.);
-        currentRotateAngle += timeSinceLastFrame/10.;
-        currentTranslation += timeSinceLastFrame/1000.;
+        currentRotateAngle += timeSinceLastFrame / 10.;
+        currentTranslation += timeSinceLastFrame / 1000.;
     }
 
     private void drawSphere(int sphereNumber) {
         glBegin(GL_TRIANGLES);
         double[] color = colorGradient(sphereNumber);
-        glColor3d(color[0], color[1], color[2]);
+//        glColor3d(color[0], color[1], color[2]);
+        glColor3d(1,1,1);
         for (int i = 0; i < sphereCoordinates.length; i++) {
 
             drawTriangleNormalFromCenter(sphereCoordinates[i]);
@@ -100,11 +133,32 @@ public class Project extends AbstractSimpleBase {
         glEnd();
     }
 
-    private void drawTetraeder(int tetraederNumber){
+    private double[] getSphereTexCoords(double[] vector) {
+        double x = vector[0];
+        double y = vector[1];
+        double z = vector[2];
+        double u = 0;
+        double v = 0;
+
+        if (z > 0) {
+            u = 2 + x;
+        } else if (x < 0) {
+            u = 1 - x;
+        } else {
+            u = 3 + x;
+        }
+
+        v = 1 + y;
+
+        double[] result = {u/4, v/4};
+        return result;
+    }
+
+    private void drawTetraeder(int tetraederNumber) {
         double[] color = colorGradient(tetraederNumber);
         glBegin(GL_TRIANGLES);
         glColor3d(color[0], color[1], color[2]);
-        for(int i = 0; i < tetraederCoordinates.length; i++){
+        for (int i = 0; i < tetraederCoordinates.length; i++) {
             drawTriangleNormalByPlane(tetraederCoordinates[i]);
         }
         glEnd();
@@ -112,18 +166,26 @@ public class Project extends AbstractSimpleBase {
 
     private void drawTriangleNormalFromCenter(double triangle[][]) {
         double[] normalVector = triangle[0];
+        double[] texCoords = getSphereTexCoords(triangle[0]);
+        glTexCoord2d(texCoords[0], texCoords[1]);
         glNormal3d(normalVector[0], normalVector[1], normalVector[2]);
         glVertex3d(triangle[0][0], triangle[0][1], triangle[0][2]);
+
         normalVector = triangle[1];
+        texCoords = getSphereTexCoords(triangle[1]);
+        glTexCoord2d(texCoords[0], texCoords[1]);
         glNormal3d(normalVector[0], normalVector[1], normalVector[2]);
         glVertex3d(triangle[1][0], triangle[1][1], triangle[1][2]);
+
         normalVector = triangle[2];
+        texCoords = getSphereTexCoords(triangle[2]);
+        glTexCoord2d(texCoords[0], texCoords[1]);
         glNormal3d(normalVector[0], normalVector[1], normalVector[2]);
         glVertex3d(triangle[2][0], triangle[2][1], triangle[2][2]);
     }
 
     private void drawTriangleNormalByPlane(double triangle[][]) {
-        double[] normalVector = matrix.crossProduct( matrix.directionVector(triangle[0], triangle[1]),matrix.directionVector(triangle[1], triangle[2]));
+        double[] normalVector = matrix.crossProduct(matrix.directionVector(triangle[0], triangle[1]), matrix.directionVector(triangle[1], triangle[2]));
         glNormal3d(normalVector[0], normalVector[1], normalVector[2]);
         glVertex3d(triangle[0][0], triangle[0][1], triangle[0][2]);
 
@@ -146,7 +208,7 @@ public class Project extends AbstractSimpleBase {
                 {{125, 138, 46}, {46, 215, 135}, {255, 255, 255}, {255, 192, 169}, {255, 133, 152}},// pinkAndGreen
                 {{0, 38, 28}, {4, 76, 41}, {22, 127, 57}, {69, 191, 85}, {150, 237, 137}},//leekparadise
         };
-        double alpha = ((colorGradientTime  + offset) % 60) / 60f;
+        double alpha = ((colorGradientTime + offset) % 60) / 60f;
 
         int colorCurrent = (((colorGradientTime + offset) / 60) + offset) % 5;
 

@@ -9,6 +9,7 @@ vec3 normal = -gl_Normal;
 varying vec4 color;
 
 void main(void){
+
     color =gl_Color;
     position = gl_ModelViewMatrix*gl_Vertex;
     N = normalize(gl_NormalMatrix*(normal));

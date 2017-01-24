@@ -65,6 +65,9 @@ public class ShapeGenerator {
         return sphere;
     }
 
+
+
+
     private double[][][] divideTriangles(double[][][] triangles, int timesToDivide) {
         double[][][] newTriangles = new double[triangles.length * 4][][];
         for (int i = 0; i < triangles.length; i++) {
