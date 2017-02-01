@@ -11,7 +11,7 @@ public class ShaderProgram {
 	private int id;
 
 	public ShaderProgram(String resourceNameWithoutExtension) {
-		this(resourceNameWithoutExtension + ".v.glsl", resourceNameWithoutExtension + ".g.glsl", resourceNameWithoutExtension + ".f.glsl");
+		this(resourceNameWithoutExtension + ".v", resourceNameWithoutExtension + ".g", resourceNameWithoutExtension + ".f");
 	}
 
 	public ShaderProgram(String vertexResourceName, String fragmentResourceName) {

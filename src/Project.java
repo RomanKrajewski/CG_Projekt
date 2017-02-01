@@ -1,10 +1,15 @@
 import lenz.opengl.AbstractSimpleBase;
 import lenz.opengl.utils.ShaderProgram;
 import lenz.opengl.utils.Texture;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Matrix4f;
+import org.lwjgl.util.vector.Vector3f;
+import org.lwjgl.util.vector.Vector4f;
+
+import java.nio.FloatBuffer;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL20.*;
@@ -22,6 +27,7 @@ public class Project extends AbstractSimpleBase {
     private ShapeGenerator shapeGenerator;
     CustomMatrix matrix;
     Matrix4f projectionMatrix;
+    Matrix4f modelViewMatrix;
 
     private double[][][] sphereCoordinates;
     private double[][][] sphereTextureCoordinates;
@@ -40,9 +46,7 @@ public class Project extends AbstractSimpleBase {
     double translateAllYDistance;
     double translateAllZDistance = -4;
 
-    double tetraederHeight = Math.sqrt(2/3.)*2;
-
-
+    double tetraederHeight = Math.sqrt(2 / 3.) * 2;
 
 
     long timeSinceLastFrame;
@@ -57,90 +61,129 @@ public class Project extends AbstractSimpleBase {
 
     @Override
     protected void initOpenGL() {
-        glMatrixMode(GL_PROJECTION);
-        glFrustum(-16 / 9., 16 / 9., -1, 1, 3, 100);
+        setUpProjectionMatrix(-16 / 9f, 16 / 9f, -1, 1, 3, 100);
+        modelViewMatrix = new Matrix4f();
+
+
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_2D);
-        glMatrixMode(GL_MODELVIEW);
-        glShadeModel(GL_SMOOTH);
+        glShadeModel(GL_FLAT);
+
+
         shader = new ShaderProgram("phong");
-        planetTextureOne = new Texture("planet1.png" );
-        earthTexture = new Texture("earthHighRes.jpg");
+        planetTextureOne = new Texture("planet1.png");
+        earthTexture = new Texture("earth.jpg");
         sunTexture = new Texture("sun.jpg");
         moonTexture = new Texture("moon.jpg");
-        illuminatiTextureOne = new Texture("illuminati.png" );
+        illuminatiTextureOne = new Texture("illuminati.png");
+
         shapeGenerator = new ShapeGenerator();
         matrix = new CustomMatrix();
         sphereCoordinates = shapeGenerator.generateSphere(4);
         sphereTextureCoordinates = shapeGenerator.generateSphereTexCoords(sphereCoordinates);
         tetraederCoordinates = shapeGenerator.generateTetraeder();
+
         timeOfLastFrame = System.currentTimeMillis();
-//        transferProjectionMatrix(projection);
+
+        glUseProgram(shader.getId());
+
+        transferProjectionMatrix(projectionMatrix);
+        transferTransformationMatrix(modelViewMatrix);
 
     }
+
+
+
+    private void transferTransformationMatrix(Matrix4f modelViewMatrix) {
+        FloatBuffer modelViewBuffer = BufferUtils.createFloatBuffer(16);
+        modelViewMatrix.store(modelViewBuffer);
+        modelViewBuffer.flip();
+        glUniformMatrix4(glGetUniformLocation(shader.getId(), "modelViewMatrix"), false, modelViewBuffer);
+
+        Matrix4f inverted = new Matrix4f();
+        Matrix4f.invert(modelViewMatrix, inverted);
+        inverted.store(modelViewBuffer);
+        modelViewBuffer.flip();
+        glUniformMatrix4(glGetUniformLocation(shader.getId(), "normalMatrix"), true, modelViewBuffer);
+    }
+
+    private void transferProjectionMatrix(Matrix4f pMatrix) {
+        FloatBuffer pBuffer = BufferUtils.createFloatBuffer(16);
+        pMatrix.store(pBuffer);
+        pBuffer.flip();
+        glUniformMatrix4(glGetUniformLocation(shader.getId(), "projectionMatrix"), false, pBuffer);
+    }
+
 
     @Override
     protected void render() {
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(backgroundcolor[0] / 255f, backgroundcolor[1] / 255f, backgroundcolor[2] / 255f, 1);
-        glUseProgram(shader.getId());
 
-
-
-        glLoadIdentity();
+        modelViewMatrix.setIdentity();
         handleTime();
         handleMouse();
         handleKeyboard();
+        transferTransformationMatrix(modelViewMatrix);
 
-        glTranslated(translateAllXDistance,translateAllYDistance,translateAllZDistance);
-        glRotated(rotateAllXAngle,1,0,0);
-        glRotated(rotateAllYAngle,0,1,0);
 
-        glRotated(currentRotateAngle, 0, 1, 0);
+        translate(translateAllXDistance, translateAllYDistance, translateAllZDistance);
+        rotate(rotateAllXAngle, 1, 0, 0);
+        rotate(rotateAllYAngle, 0, 1, 0);
+
+        rotate(10,0,0,1);
+        rotate(currentRotateAngle, 0, 1, 0);
+
         glBindTexture(GL_TEXTURE_2D, sunTexture.getId());
-        drawSphere(1);
+        drawSphere(0);
+        glUniform3f(glGetUniformLocation(shader.getId(), "light"), modelViewMatrix.m30, modelViewMatrix.m31,modelViewMatrix.m32);
 
-        glRotated(-currentRotateAngle, 0, 1, 0);
-        glTranslated(0,-2.5,0);
-        glRotated(-33.3333, 1, 0, 0);
 
+
+        rotate(-currentRotateAngle, 0, 1, 0);
+        rotate(-10,0,0,1);
+
+        translate(0, -2.5, 0);
+        rotate(-33.3333, 1, 0, 0);
         drawTetraeder(1);
+        rotate(33.3333, 1, 0, 0);
+        translate(0, 2.5, 0);
+        rotate(10,0,0,1);
+        rotate(currentRotateAngle, 0, 1, 0);
 
-        glRotated(33.3333, 1,0,0);
-        glTranslated(0,2.5,0);
-        glRotated(currentRotateAngle, 0,1,0);
+
+        glBindTexture(GL_TEXTURE_2D,planetTextureOne.getId());
+        rotate(-currentRotateAngle*2,0,1,0);
+
+        translate(7,0,0);
+        rotate(-currentRotateAngle*2,0,1,0);
+        scale(0.5,0.5,0.5);
+        glUniform1f(glGetUniformLocation(shader.getId(), "useProcedure"), 1f);
+        glUniform1f(glGetUniformLocation(shader.getId(), "time"), (float)currentTranslation);
+        drawSphere(1);
+        glUniform1f(glGetUniformLocation(shader.getId(), "useProcedure"), 0f);
+        scale(2,2,2);
+        rotate(+currentRotateAngle*2,0,1,0);
+        translate(-7,0,0);
+        rotate(+currentRotateAngle*2,0,1,0);
+
 
 
         glBindTexture(GL_TEXTURE_2D, earthTexture.getId());
-
-
-        glTranslated(3,0, 0);
-        glRotated(currentRotateAngle,0.2,0.8,0);
-        glScaled(0.5,0.5,0.5);
-
+        translate(4, 0, 0);
+        rotate(currentRotateAngle, 1, 0, 0);
+        scale(0.4, 0.4, 0.4);
         drawSphere(1);
+
         glBindTexture(GL_TEXTURE_2D, moonTexture.getId());
 
-        glTranslated(0,0,3);
-        glScaled(0.5,0.5,0.5);
+        translate(0, 0, 2);
+        scale(0.2, 0.2, 0.2);
         drawSphere(1);
-    }
 
-    private void setUpProjectionMatrix(){
-        projectionMatrix = new Matrix4f();
-        projectionMatrix.m00 = 1;
-        projectionMatrix.m11 = 1;
-        projectionMatrix.m20 = 0; //A
-        projectionMatrix.m21 = 0; //B
-        projectionMatrix.m22 = -((100+1f)/(100-1f)); //C far=100, near=1
-        projectionMatrix.m32 = -((2*100*1f)/(100-1f)); //D "
-        projectionMatrix.m23 = -1;
-        projectionMatrix.m33 = 0;
-    }
-
-    private void transferProjectionMatrix(){
-
+        glFlush();
     }
 
 
@@ -152,29 +195,29 @@ public class Project extends AbstractSimpleBase {
         glUniform2f(loc1, mouseX, mouseY);
     }
 
-    private void handleKeyboard(){
-        if(Keyboard.isKeyDown(Keyboard.KEY_W)){
+    private void handleKeyboard() {
+        if (Keyboard.isKeyDown(Keyboard.KEY_W)) {
             translateAllZDistance -= 0.1;
         }
-        if(Keyboard.isKeyDown(Keyboard.KEY_S)){
+        if (Keyboard.isKeyDown(Keyboard.KEY_S)) {
             translateAllZDistance += 0.1;
         }
-        if(Keyboard.isKeyDown(Keyboard.KEY_A)){
+        if (Keyboard.isKeyDown(Keyboard.KEY_A)) {
             translateAllXDistance -= 0.1;
         }
-        if(Keyboard.isKeyDown(Keyboard.KEY_D)){
+        if (Keyboard.isKeyDown(Keyboard.KEY_D)) {
             translateAllXDistance += 0.1;
         }
-        if(Keyboard.isKeyDown(Keyboard.KEY_J)){
+        if (Keyboard.isKeyDown(Keyboard.KEY_J)) {
             rotateAllYAngle -= 0.8;
         }
-        if(Keyboard.isKeyDown(Keyboard.KEY_L)){
+        if (Keyboard.isKeyDown(Keyboard.KEY_L)) {
             rotateAllYAngle += 0.8;
         }
-        if(Keyboard.isKeyDown(Keyboard.KEY_I)){
+        if (Keyboard.isKeyDown(Keyboard.KEY_I)) {
             rotateAllXAngle += 0.8;
         }
-        if(Keyboard.isKeyDown(Keyboard.KEY_K)){
+        if (Keyboard.isKeyDown(Keyboard.KEY_K)) {
             rotateAllXAngle -= 0.8;
         }
     }
@@ -192,8 +235,12 @@ public class Project extends AbstractSimpleBase {
 
     private void drawSphere(int sphereNumber) {
         glBegin(GL_TRIANGLES);
-        glColor3d(1,1,1);
+        glColor3d(1, 1, 1);
         for (int i = 0; i < sphereCoordinates.length; i++) {
+            if(sphereNumber == 0){
+                drawTriangleNormalFromCenterReversedNormals(sphereCoordinates[i], i);
+            }
+            else
             drawTriangleNormalFromCenter(sphereCoordinates[i], i);
         }
 
@@ -201,10 +248,9 @@ public class Project extends AbstractSimpleBase {
     }
 
 
-
     private void drawTetraeder(int tetraederNumber) {
         double[] color = colorGradient(tetraederNumber);
-        glBindTexture(GL_TEXTURE_2D,illuminatiTextureOne.getId());
+        glBindTexture(GL_TEXTURE_2D, illuminatiTextureOne.getId());
         glBegin(GL_TRIANGLES);
         glColor3d(color[0], color[1], color[2]);
         for (int i = 0; i < tetraederCoordinates.length; i++) {
@@ -221,15 +267,35 @@ public class Project extends AbstractSimpleBase {
         glVertex3d(triangle[0][0], triangle[0][1], triangle[0][2]);
 
         normalVector = triangle[1];
-        texCoords =  sphereTextureCoordinates[sphereTexturePosition][1];
+        texCoords = sphereTextureCoordinates[sphereTexturePosition][1];
         glTexCoord2d(texCoords[0], texCoords[1]);
         glNormal3d(normalVector[0], normalVector[1], normalVector[2]);
         glVertex3d(triangle[1][0], triangle[1][1], triangle[1][2]);
 
         normalVector = triangle[2];
-        texCoords =  sphereTextureCoordinates[sphereTexturePosition][2];
+        texCoords = sphereTextureCoordinates[sphereTexturePosition][2];
         glTexCoord2d(texCoords[0], texCoords[1]);
         glNormal3d(normalVector[0], normalVector[1], normalVector[2]);
+        glVertex3d(triangle[2][0], triangle[2][1], triangle[2][2]);
+    }
+
+    private void drawTriangleNormalFromCenterReversedNormals(double triangle[][], int sphereTexturePosition) {
+        double[] normalVector = triangle[0];
+        double[] texCoords = sphereTextureCoordinates[sphereTexturePosition][0];
+        glTexCoord2d(texCoords[0], texCoords[1]);
+        glNormal3d(-normalVector[0], -normalVector[1], -normalVector[2]);
+        glVertex3d(triangle[0][0], triangle[0][1], triangle[0][2]);
+
+        normalVector = triangle[1];
+        texCoords = sphereTextureCoordinates[sphereTexturePosition][1];
+        glTexCoord2d(texCoords[0], texCoords[1]);
+        glNormal3d(-normalVector[0], -normalVector[1], -normalVector[2]);
+        glVertex3d(triangle[1][0], triangle[1][1], triangle[1][2]);
+
+        normalVector = triangle[2];
+        texCoords = sphereTextureCoordinates[sphereTexturePosition][2];
+        glTexCoord2d(texCoords[0], texCoords[1]);
+        glNormal3d(-normalVector[0], -normalVector[1], -normalVector[2]);
         glVertex3d(triangle[2][0], triangle[2][1], triangle[2][2]);
     }
 
@@ -282,5 +348,35 @@ public class Project extends AbstractSimpleBase {
 
         double color[] = {rGes, gGes, bGes};
         return color;
+    }
+
+    private void setUpProjectionMatrix(float left, float right, float bottom, float top, float near, float far) {
+
+        projectionMatrix = new Matrix4f();
+        projectionMatrix.m00 = (2 * near) / (right - left);
+        projectionMatrix.m11 = (2 * near) / (top - bottom);
+        projectionMatrix.m20 = (right + left) / (right - left); //A
+        projectionMatrix.m21 = (top + bottom) / (top - bottom); //B
+        projectionMatrix.m22 = -((far + near) / (far - near)); //C far=100, near=1
+        projectionMatrix.m32 = -((2 * far * near) / (far - near)); //D "
+        projectionMatrix.m23 = -1;
+        projectionMatrix.m33 = 0;
+
+
+    }
+
+    private void rotate(double angle, double x, double y, double z) {
+        modelViewMatrix.rotate((float) Math.toRadians(angle), new Vector3f((float) x, (float) y, (float) z));
+        transferTransformationMatrix(modelViewMatrix);
+    }
+
+    private void translate(double x, double y, double z) {
+        modelViewMatrix.translate(new Vector3f((float) x, (float) y, (float) z));
+        transferTransformationMatrix(modelViewMatrix);
+    }
+
+    private void scale(double x, double y, double z) {
+        modelViewMatrix.scale(new Vector3f((float) x, (float) y, (float) z));
+        transferTransformationMatrix(modelViewMatrix);
     }
 }
