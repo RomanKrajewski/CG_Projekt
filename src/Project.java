@@ -182,37 +182,48 @@ public class Project extends AbstractSimpleBase {
 
         if (renderMode == 2) {
             int loc1 = glGetUniformLocation(shader.getId(), "light");
-            glUniform3f(loc1, 0, 0, 3);
+            glUniform3f(loc1, 0, 0, 0);
 
-            glUniform1f(glGetUniformLocation(shader.getId(), "specular"), (float) 0.7);
+            glUniform1f(glGetUniformLocation(shader.getId(), "specular"), (float) 0.5);
             glUniform1f(glGetUniformLocation(shader.getId(), "ambient"), (float) 0.2);
-            glUniform1f(glGetUniformLocation(shader.getId(), "ideal"), (float) 0.1);
-
-            handleMouse();
+            glUniform1f(glGetUniformLocation(shader.getId(), "ideal"), (float) 0.3);
 
             translate(translateAllXDistance, translateAllYDistance, translateAllZDistance);
-            rotate(rotateAllXAngle, 1, 0, 0);
-            rotate(rotateAllYAngle, 0, 1, 0);
 
             double[] color = colorGradient(1);
             glColor3d(0.5, 0.5, 0.5);
             translate(3,-3,Math.sin(currentTranslation));
+            rotate(rotateAllXAngle,1,0,0);
+            rotate(rotateAllYAngle, 0, 1, 0);
             drawCube();
 
+            rotate(-rotateAllYAngle, 0, 1, 0);
+            rotate(-rotateAllXAngle,1,0,0);
 
-            color = colorGradient(2);
-            glColor3d(color[0], color[1], color[2]);
+//            color = colorGradient(2);
+//            glColor3d(color[0], color[1], color[2]);
             translate(-6,0,Math.sin(currentTranslation));
+            rotate(rotateAllXAngle,1,0,0);
+            rotate(rotateAllYAngle, 0, 1, 0);
             drawCube();
 
-            color = colorGradient(3);
-            glColor3d(color[0], color[1], color[2]);
+            rotate(-rotateAllYAngle, 0, 1, 0);
+            rotate(-rotateAllXAngle,1,0,0);
+
+//            color = colorGradient(3);
+//            glColor3d(color[0], color[1], color[2]);
             translate(0,6,Math.sin(currentTranslation));
+            rotate(rotateAllXAngle,1,0,0);
+            rotate(rotateAllYAngle, 0, 1, 0);
             drawCube();
+            rotate(-rotateAllYAngle, 0, 1, 0);
+            rotate(-rotateAllXAngle,1,0,0);
 
-            color = colorGradient(4);
-            glColor3d(color[0], color[1], color[2]);
+//            color = colorGradient(4);
+//            glColor3d(color[0], color[1], color[2]);
             translate(6,0,Math.sin(currentTranslation));
+            rotate(rotateAllXAngle,1,0,0);
+            rotate(rotateAllYAngle, 0, 1, 0);
             drawCube();
         }
 
