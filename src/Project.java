@@ -181,6 +181,8 @@ public class Project extends AbstractSimpleBase {
         }
 
         if (renderMode == 2) {
+            int loc1 = glGetUniformLocation(shader.getId(), "light");
+            glUniform3f(loc1, 0, 0, 3);
 
             glUniform1f(glGetUniformLocation(shader.getId(), "specular"), (float) 0.7);
             glUniform1f(glGetUniformLocation(shader.getId(), "ambient"), (float) 0.2);
@@ -217,26 +219,6 @@ public class Project extends AbstractSimpleBase {
         glFlush();
     }
 
-
-    private void handleMouse() {
-
-        float mouseX = ((Mouse.getX() - (Display.getWidth() / 2)) / (float) (Display.getWidth()/2)) ;
-        float mouseY = ((Mouse.getY() - (Display.getHeight() / 2)) / (float) (Display.getHeight()/2)) ;
-        Matrix4f invertedProjection = new Matrix4f();
-        Matrix4f mVP = new Matrix4f();
-//        Matrix4f.mul(modelViewMatrix,projectionMatrix,mVP);
-        Matrix4f.invert(projectionMatrix, invertedProjection);
-        Vector4f mouseVector = new Vector4f(mouseX,mouseY,(float)translateAllZDistance/-100f,1);
-        Vector4f projectedMouseVector = new Vector4f();
-        Matrix4f.transform(invertedProjection,mouseVector,projectedMouseVector);
-        float posX = projectedMouseVector.getX()*-((float)translateAllZDistance+30);
-        float posY = projectedMouseVector.getY()*-((float)translateAllZDistance+30);
-
-        int loc1 = glGetUniformLocation(shader.getId(), "light");
-        glUniform3f(loc1, 0, 0, 3);
-//        translate(posX,posY,0);
-        System.out.println(projectedMouseVector.getW());
-    }
 
     private void handleKeyboard() {
         if (Keyboard.isKeyDown(Keyboard.KEY_W)) {
