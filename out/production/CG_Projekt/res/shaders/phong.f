@@ -10,7 +10,7 @@ void main(void){
    	gl_FragColor = texColor*phongColor;
    	}
    	else{
-   	    if(mod(uv.y,0.05)>0.025){
+   	    if(mod(uv.y + time/10. ,0.05)>0.025){
    	            gl_FragColor = phongColor * vec4(1,0.5,0.5,1);
    	    }
    	    else{

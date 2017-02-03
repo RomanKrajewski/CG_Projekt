@@ -7,9 +7,9 @@ uniform mat4 normalMatrix;
 varying vec4 phongColor;
 varying vec2 uv;
 
-float ambient = 0.05;
-float specular = 0.0;
-float ideal = 1.9;
+uniform float ambient ;
+uniform float specular ;
+uniform float ideal ;
 
 
 
@@ -27,7 +27,7 @@ void main(void){
     vec3 V = normalize(-position.xyz);
 
     float Id = max(dot(L,N),0.0)*ideal;
-    float Is = pow(dot(R,V),18.0)*specular;
+    float Is = pow(dot(R,V),28.0)*specular;
 
 	phongColor = color*(Id+Is+ambient);
 	gl_Position = projectionMatrix*modelViewMatrix*gl_Vertex;

@@ -5,9 +5,7 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
-import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Vector3f;
-import org.lwjgl.util.vector.Vector4f;
+import org.lwjgl.util.vector.*;
 
 import java.nio.FloatBuffer;
 
@@ -35,18 +33,15 @@ public class Project extends AbstractSimpleBase {
 
     private int[] backgroundcolor = {20, 20, 20};
 
-    boolean rotate;
     double currentRotateAngle = 0;
-    boolean translate;
     double currentTranslation = 0;
     double rotateAllXAngle;
     double rotateAllYAngle;
-    double rotateAllZAngle;
     double translateAllXDistance;
     double translateAllYDistance;
     double translateAllZDistance = -4;
 
-    double tetraederHeight = Math.sqrt(2 / 3.) * 2;
+    int renderMode = 2;
 
 
     long timeSinceLastFrame;
@@ -94,7 +89,6 @@ public class Project extends AbstractSimpleBase {
     }
 
 
-
     private void transferTransformationMatrix(Matrix4f modelViewMatrix) {
         FloatBuffer modelViewBuffer = BufferUtils.createFloatBuffer(16);
         modelViewMatrix.store(modelViewBuffer);
@@ -124,64 +118,101 @@ public class Project extends AbstractSimpleBase {
 
         modelViewMatrix.setIdentity();
         handleTime();
-        handleMouse();
         handleKeyboard();
         transferTransformationMatrix(modelViewMatrix);
 
+        if (renderMode == 1) {
+            glUniform1f(glGetUniformLocation(shader.getId(), "specular"), (float) 0.0);
+            glUniform1f(glGetUniformLocation(shader.getId(), "ambient"), (float) 0.05);
+            glUniform1f(glGetUniformLocation(shader.getId(), "ideal"), (float) 1.9);
 
-        translate(translateAllXDistance, translateAllYDistance, translateAllZDistance);
-        rotate(rotateAllXAngle, 1, 0, 0);
-        rotate(rotateAllYAngle, 0, 1, 0);
+            translate(translateAllXDistance, translateAllYDistance, translateAllZDistance);
+            rotate(rotateAllXAngle, 1, 0, 0);
+            rotate(rotateAllYAngle, 0, 1, 0);
 
-        rotate(10,0,0,1);
-        rotate(currentRotateAngle, 0, 1, 0);
+            rotate(10, 0, 0, 1);
+            rotate(currentRotateAngle, 0, 1, 0);
 
-        glBindTexture(GL_TEXTURE_2D, sunTexture.getId());
-        drawSphere(0);
-        glUniform3f(glGetUniformLocation(shader.getId(), "light"), modelViewMatrix.m30, modelViewMatrix.m31,modelViewMatrix.m32);
-
-
-
-        rotate(-currentRotateAngle, 0, 1, 0);
-        rotate(-10,0,0,1);
-
-        translate(0, -2.5, 0);
-        rotate(-33.3333, 1, 0, 0);
-        drawTetraeder(1);
-        rotate(33.3333, 1, 0, 0);
-        translate(0, 2.5, 0);
-        rotate(10,0,0,1);
-        rotate(currentRotateAngle, 0, 1, 0);
+            glBindTexture(GL_TEXTURE_2D, sunTexture.getId());
+            drawSphere(0);
+            glUniform3f(glGetUniformLocation(shader.getId(), "light"), modelViewMatrix.m30, modelViewMatrix.m31, modelViewMatrix.m32);
 
 
-        glBindTexture(GL_TEXTURE_2D,planetTextureOne.getId());
-        rotate(-currentRotateAngle*2,0,1,0);
+            rotate(-currentRotateAngle, 0, 1, 0);
+            rotate(-10, 0, 0, 1);
 
-        translate(7,0,0);
-        rotate(-currentRotateAngle*2,0,1,0);
-        scale(0.5,0.5,0.5);
-        glUniform1f(glGetUniformLocation(shader.getId(), "useProcedure"), 1f);
-        glUniform1f(glGetUniformLocation(shader.getId(), "time"), (float)currentTranslation);
-        drawSphere(1);
-        glUniform1f(glGetUniformLocation(shader.getId(), "useProcedure"), 0f);
-        scale(2,2,2);
-        rotate(+currentRotateAngle*2,0,1,0);
-        translate(-7,0,0);
-        rotate(+currentRotateAngle*2,0,1,0);
+            translate(0, -2.5, 0);
+            rotate(-33.3333, 1, 0, 0);
+            drawTetraeder(1);
+            rotate(33.3333, 1, 0, 0);
+            translate(0, 2.5, 0);
+            rotate(10, 0, 0, 1);
+            rotate(currentRotateAngle, 0, 1, 0);
 
 
+            glBindTexture(GL_TEXTURE_2D, planetTextureOne.getId());
+            rotate(-currentRotateAngle * 2, 0, 1, 0);
 
-        glBindTexture(GL_TEXTURE_2D, earthTexture.getId());
-        translate(4, 0, 0);
-        rotate(currentRotateAngle, 1, 0, 0);
-        scale(0.4, 0.4, 0.4);
-        drawSphere(1);
+            translate(7, 0, 0);
+            rotate(-currentRotateAngle * 2, 0, 1, 0);
+            scale(0.5, 0.5, 0.5);
+            glUniform1f(glGetUniformLocation(shader.getId(), "useProcedure"), 1f);
+            glUniform1f(glGetUniformLocation(shader.getId(), "time"), (float) currentTranslation);
+            drawSphere(1);
+            glUniform1f(glGetUniformLocation(shader.getId(), "useProcedure"), 0f);
+            scale(2, 2, 2);
+            rotate(+currentRotateAngle * 2, 0, 1, 0);
+            translate(-7, 0, 0);
+            rotate(+currentRotateAngle * 2, 0, 1, 0);
 
-        glBindTexture(GL_TEXTURE_2D, moonTexture.getId());
 
-        translate(0, 0, 2);
-        scale(0.2, 0.2, 0.2);
-        drawSphere(1);
+            glBindTexture(GL_TEXTURE_2D, earthTexture.getId());
+            translate(4, 0, 0);
+            rotate(currentRotateAngle, 1, 0, 0);
+            scale(0.4, 0.4, 0.4);
+            drawSphere(1);
+
+            glBindTexture(GL_TEXTURE_2D, moonTexture.getId());
+
+            translate(0, 0, 2);
+            scale(0.2, 0.2, 0.2);
+            drawSphere(1);
+
+        }
+
+        if (renderMode == 2) {
+
+            glUniform1f(glGetUniformLocation(shader.getId(), "specular"), (float) 0.7);
+            glUniform1f(glGetUniformLocation(shader.getId(), "ambient"), (float) 0.2);
+            glUniform1f(glGetUniformLocation(shader.getId(), "ideal"), (float) 0.1);
+
+            handleMouse();
+
+            translate(translateAllXDistance, translateAllYDistance, translateAllZDistance);
+            rotate(rotateAllXAngle, 1, 0, 0);
+            rotate(rotateAllYAngle, 0, 1, 0);
+
+            double[] color = colorGradient(1);
+            glColor3d(0.5, 0.5, 0.5);
+            translate(3,-3,Math.sin(currentTranslation));
+            drawCube();
+
+
+            color = colorGradient(2);
+            glColor3d(color[0], color[1], color[2]);
+            translate(-6,0,Math.sin(currentTranslation));
+            drawCube();
+
+            color = colorGradient(3);
+            glColor3d(color[0], color[1], color[2]);
+            translate(0,6,Math.sin(currentTranslation));
+            drawCube();
+
+            color = colorGradient(4);
+            glColor3d(color[0], color[1], color[2]);
+            translate(6,0,Math.sin(currentTranslation));
+            drawCube();
+        }
 
         glFlush();
     }
@@ -189,10 +220,22 @@ public class Project extends AbstractSimpleBase {
 
     private void handleMouse() {
 
-        float mouseX = ((Mouse.getX() - Display.getWidth() / 2) / (float) Display.getWidth()) * 3;
-        float mouseY = ((Mouse.getY() - Display.getHeight() / 2) / (float) Display.getHeight()) * 2;
-        int loc1 = glGetUniformLocation(shader.getId(), "lightPosition");
-        glUniform2f(loc1, mouseX, mouseY);
+        float mouseX = ((Mouse.getX() - (Display.getWidth() / 2)) / (float) (Display.getWidth()/2)) ;
+        float mouseY = ((Mouse.getY() - (Display.getHeight() / 2)) / (float) (Display.getHeight()/2)) ;
+        Matrix4f invertedProjection = new Matrix4f();
+        Matrix4f mVP = new Matrix4f();
+//        Matrix4f.mul(modelViewMatrix,projectionMatrix,mVP);
+        Matrix4f.invert(projectionMatrix, invertedProjection);
+        Vector4f mouseVector = new Vector4f(mouseX,mouseY,(float)translateAllZDistance/-100f,1);
+        Vector4f projectedMouseVector = new Vector4f();
+        Matrix4f.transform(invertedProjection,mouseVector,projectedMouseVector);
+        float posX = projectedMouseVector.getX()*-((float)translateAllZDistance+30);
+        float posY = projectedMouseVector.getY()*-((float)translateAllZDistance+30);
+
+        int loc1 = glGetUniformLocation(shader.getId(), "light");
+        glUniform3f(loc1, 0, 0, 3);
+//        translate(posX,posY,0);
+        System.out.println(projectedMouseVector.getW());
     }
 
     private void handleKeyboard() {
@@ -220,6 +263,22 @@ public class Project extends AbstractSimpleBase {
         if (Keyboard.isKeyDown(Keyboard.KEY_K)) {
             rotateAllXAngle -= 0.8;
         }
+
+        if (Keyboard.isKeyDown(Keyboard.KEY_2)) {
+            renderMode = 2;
+        }
+
+        if (Keyboard.isKeyDown(Keyboard.KEY_1)) {
+            renderMode = 1;
+        }
+
+        if (Keyboard.isKeyDown(Keyboard.KEY_SPACE)) {
+        rotateAllXAngle = 0;
+        rotateAllYAngle =0;
+        translateAllZDistance = -7;
+        }
+
+
     }
 
 
@@ -237,11 +296,10 @@ public class Project extends AbstractSimpleBase {
         glBegin(GL_TRIANGLES);
         glColor3d(1, 1, 1);
         for (int i = 0; i < sphereCoordinates.length; i++) {
-            if(sphereNumber == 0){
+            if (sphereNumber == 0) { //sphere is the sun and therefor has to have reversed normals
                 drawTriangleNormalFromCenterReversedNormals(sphereCoordinates[i], i);
-            }
-            else
-            drawTriangleNormalFromCenter(sphereCoordinates[i], i);
+            } else
+                drawTriangleNormalFromCenter(sphereCoordinates[i], i);
         }
 
         glEnd();
@@ -277,6 +335,51 @@ public class Project extends AbstractSimpleBase {
         glTexCoord2d(texCoords[0], texCoords[1]);
         glNormal3d(normalVector[0], normalVector[1], normalVector[2]);
         glVertex3d(triangle[2][0], triangle[2][1], triangle[2][2]);
+    }
+
+    private void drawCube() {
+        glBegin(GL_QUADS);
+
+        glNormal3d(0, 0, 1);
+        glVertex3d(1, 1, 1);
+        glVertex3d(-1, 1, 1);
+        glVertex3d(-1, -1, 1);
+        glVertex3d(1, -1, 1);
+
+
+        glNormal3d(0, 0, -1);
+        glVertex3d(1, -1, -1);
+        glVertex3d(-1, -1, -1);
+        glVertex3d(-1, 1, -1);
+        glVertex3d(1, 1, -1);
+
+
+        glNormal3d(0, 1, 0);
+        glVertex3d(1, 1, -1);
+        glVertex3d(-1, 1, -1);
+        glVertex3d(-1, 1, 1);
+        glVertex3d(1, 1, 1);
+
+        glNormal3d(0, -1, 0);
+        glVertex3d(1, -1, 1);
+        glVertex3d(-1, -1, 1);
+        glVertex3d(-1, -1, -1);
+        glVertex3d(1, -1, -1);
+
+        glNormal3d(1, 0, 0);
+        glVertex3d(1, 1, 1);
+        glVertex3d(1, -1, 1);
+        glVertex3d(1, -1, -1);
+        glVertex3d(1, 1, -1);
+
+        glNormal3d(-1, 0, 0);
+        glVertex3d(-1, 1, -1);
+        glVertex3d(-1, -1, -1);
+        glVertex3d(-1, -1, 1);
+        glVertex3d(-1, 1, 1);
+
+        glEnd();
+
     }
 
     private void drawTriangleNormalFromCenterReversedNormals(double triangle[][], int sphereTexturePosition) {
