@@ -27,7 +27,7 @@ void main(void){
     vec3 V = normalize(-position.xyz);
 
     float Id = max(dot(L,N),0.0)*ideal;
-    float Is = pow(max(0.0,dot(R,V)),5.0)*specular;
+    float Is = pow(max(0.0,dot(R,V)),28.0)*specular;
 
 	phongColor = color*(Id+Is+ambient);
 	gl_Position = projectionMatrix*modelViewMatrix*gl_Vertex;

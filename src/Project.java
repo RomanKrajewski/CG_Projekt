@@ -19,6 +19,10 @@ public class Project extends AbstractSimpleBase {
     private Texture earthTexture;
     private Texture sunTexture;
     private Texture moonTexture;
+    private Texture holzLowLinear;
+    private Texture holzLowNearestNeighbor;
+    private Texture holzLinear;
+    private Texture holzNearestNeighbor;
 
     private ShaderProgram shader;
 
@@ -34,12 +38,14 @@ public class Project extends AbstractSimpleBase {
     private int[] backgroundcolor = {20, 20, 20};
 
     double currentRotateAngle = 0;
+
+    boolean rotate = true;
     double currentTranslation = 0;
     double rotateAllXAngle;
     double rotateAllYAngle;
     double translateAllXDistance;
     double translateAllYDistance;
-    double translateAllZDistance = -4;
+    double translateAllZDistance = -15;
 
     int renderMode = 2;
 
@@ -63,15 +69,49 @@ public class Project extends AbstractSimpleBase {
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_2D);
-        glShadeModel(GL_FLAT);
+        glShadeModel(GL_SMOOTH);
 
 
         shader = new ShaderProgram("phong");
-        planetTextureOne = new Texture("planet1.png");
-        earthTexture = new Texture("earth.jpg");
-        sunTexture = new Texture("sun.jpg");
-        moonTexture = new Texture("moon.jpg");
-        illuminatiTextureOne = new Texture("illuminati.png");
+        earthTexture = new Texture("earthMidRes.jpg",10);
+        sunTexture = new Texture("sunMidRes.jpg",10);
+        moonTexture = new Texture("moon.jpg",10);
+        illuminatiTextureOne = new Texture("illuminati.png",10);
+
+        holzLowLinear = new Texture("holz_low_linear.jpg", 10);
+        holzLowNearestNeighbor = new Texture("holz_low_nearest_neighbor.jpg", 10);
+        holzLinear = new Texture("holz_linear.jpg", 10);
+        holzNearestNeighbor = new Texture("holz_nearest_neighbor.jpg", 10);
+
+        glBindTexture(GL_TEXTURE_2D, earthTexture.getId());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glBindTexture(GL_TEXTURE_2D, sunTexture.getId());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glBindTexture(GL_TEXTURE_2D, moonTexture.getId());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glBindTexture(GL_TEXTURE_2D, illuminatiTextureOne.getId());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glBindTexture(GL_TEXTURE_2D, holzLowLinear.getId());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glBindTexture(GL_TEXTURE_2D, holzLowNearestNeighbor.getId());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+        glBindTexture(GL_TEXTURE_2D, holzLinear.getId());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glBindTexture(GL_TEXTURE_2D, holzNearestNeighbor.getId());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
 
         shapeGenerator = new ShapeGenerator();
         matrix = new CustomMatrix();
@@ -122,7 +162,7 @@ public class Project extends AbstractSimpleBase {
         transferTransformationMatrix(modelViewMatrix);
 
         if (renderMode == 1) {
-            glUniform1f(glGetUniformLocation(shader.getId(), "specular"), (float) 0.0);
+            glUniform1f(glGetUniformLocation(shader.getId(), "specular"), (float) 1.0);
             glUniform1f(glGetUniformLocation(shader.getId(), "ambient"), (float) 0.05);
             glUniform1f(glGetUniformLocation(shader.getId(), "ideal"), (float) 1.9);
 
@@ -135,29 +175,30 @@ public class Project extends AbstractSimpleBase {
 
             glBindTexture(GL_TEXTURE_2D, sunTexture.getId());
             drawSphere(0);
-            glUniform3f(glGetUniformLocation(shader.getId(), "light"), modelViewMatrix.m30, modelViewMatrix.m31, modelViewMatrix.m32);
-
-
+            glUniform3f(glGetUniformLocation(shader.getId(), "light"), modelViewMatrix.m30, modelViewMatrix.m31, modelViewMatrix.m32); //light at sun position;
             rotate(-currentRotateAngle, 0, 1, 0);
             rotate(-10, 0, 0, 1);
 
+            //draw tetraeder without rotation
             translate(0, -2.5, 0);
             rotate(-33.3333, 1, 0, 0);
             drawTetraeder(1);
             rotate(33.3333, 1, 0, 0);
             translate(0, 2.5, 0);
             rotate(10, 0, 0, 1);
+
+
+
             rotate(currentRotateAngle, 0, 1, 0);
 
-
-            glBindTexture(GL_TEXTURE_2D, planetTextureOne.getId());
             rotate(-currentRotateAngle * 2, 0, 1, 0);
-
             translate(7, 0, 0);
             rotate(-currentRotateAngle * 2, 0, 1, 0);
             scale(0.5, 0.5, 0.5);
+
             glUniform1f(glGetUniformLocation(shader.getId(), "useProcedure"), 1f);
             glUniform1f(glGetUniformLocation(shader.getId(), "time"), (float) currentTranslation);
+
             drawSphere(1);
             glUniform1f(glGetUniformLocation(shader.getId(), "useProcedure"), 0f);
             scale(2, 2, 2);
@@ -168,7 +209,9 @@ public class Project extends AbstractSimpleBase {
 
             glBindTexture(GL_TEXTURE_2D, earthTexture.getId());
             translate(4, 0, 0);
-            rotate(currentRotateAngle, 1, 0, 0);
+            rotate(23.5, 0, 0, 1);
+
+            rotate(3*currentRotateAngle, 0, 1, 0);
             scale(0.4, 0.4, 0.4);
             drawSphere(1);
 
@@ -182,48 +225,47 @@ public class Project extends AbstractSimpleBase {
 
         if (renderMode == 2) {
             int loc1 = glGetUniformLocation(shader.getId(), "light");
-            glUniform3f(loc1, 0, 0, 0);
+            glUniform3f(loc1, 5, 5, 5);
 
-            glUniform1f(glGetUniformLocation(shader.getId(), "specular"), (float) 0.5);
+            glUniform1f(glGetUniformLocation(shader.getId(), "specular"), (float) 0.7);
             glUniform1f(glGetUniformLocation(shader.getId(), "ambient"), (float) 0.2);
-            glUniform1f(glGetUniformLocation(shader.getId(), "ideal"), (float) 0.3);
+            glUniform1f(glGetUniformLocation(shader.getId(), "ideal"), (float) 0.5);
 
             translate(translateAllXDistance, translateAllYDistance, translateAllZDistance);
 
-            double[] color = colorGradient(1);
-            glColor3d(0.5, 0.5, 0.5);
-            translate(3,-3,Math.sin(currentTranslation));
-            rotate(rotateAllXAngle,1,0,0);
+            translate(3, -3, Math.sin(currentTranslation)); //bottom right
+            rotate(rotateAllXAngle, 1, 0, 0);
             rotate(rotateAllYAngle, 0, 1, 0);
+            glBindTexture(GL_TEXTURE_2D, holzLowLinear.getId());
             drawCube();
 
             rotate(-rotateAllYAngle, 0, 1, 0);
-            rotate(-rotateAllXAngle,1,0,0);
+            rotate(-rotateAllXAngle, 1, 0, 0);
 
-//            color = colorGradient(2);
-//            glColor3d(color[0], color[1], color[2]);
-            translate(-6,0,Math.sin(currentTranslation));
-            rotate(rotateAllXAngle,1,0,0);
+            translate(-6, 0, Math.sin(currentTranslation)); //bottom left
+            rotate(rotateAllXAngle, 1, 0, 0);
             rotate(rotateAllYAngle, 0, 1, 0);
+            glBindTexture(GL_TEXTURE_2D, holzLowNearestNeighbor.getId());
+
             drawCube();
 
             rotate(-rotateAllYAngle, 0, 1, 0);
-            rotate(-rotateAllXAngle,1,0,0);
+            rotate(-rotateAllXAngle, 1, 0, 0);
 
-//            color = colorGradient(3);
-//            glColor3d(color[0], color[1], color[2]);
-            translate(0,6,Math.sin(currentTranslation));
-            rotate(rotateAllXAngle,1,0,0);
+            translate(0, 6, Math.sin(currentTranslation)); //top left
+            rotate(rotateAllXAngle, 1, 0, 0);
             rotate(rotateAllYAngle, 0, 1, 0);
+            glBindTexture(GL_TEXTURE_2D, holzNearestNeighbor.getId());
+
             drawCube();
             rotate(-rotateAllYAngle, 0, 1, 0);
-            rotate(-rotateAllXAngle,1,0,0);
+            rotate(-rotateAllXAngle, 1, 0, 0);
 
-//            color = colorGradient(4);
-//            glColor3d(color[0], color[1], color[2]);
-            translate(6,0,Math.sin(currentTranslation));
-            rotate(rotateAllXAngle,1,0,0);
+            translate(6, 0, Math.sin(currentTranslation)); //top right
+            rotate(rotateAllXAngle, 1, 0, 0);
             rotate(rotateAllYAngle, 0, 1, 0);
+            glBindTexture(GL_TEXTURE_2D, holzLinear.getId());
+
             drawCube();
         }
 
@@ -266,9 +308,20 @@ public class Project extends AbstractSimpleBase {
         }
 
         if (Keyboard.isKeyDown(Keyboard.KEY_SPACE)) {
-        rotateAllXAngle = 0;
-        rotateAllYAngle =0;
-        translateAllZDistance = -7;
+
+            rotateAllXAngle = 0;
+            rotateAllYAngle = 0;
+            translateAllXDistance = 0;
+            translateAllYDistance = 0;
+            translateAllZDistance = -15;
+        }
+
+        if (Keyboard.isKeyDown(Keyboard.KEY_R)) {
+            rotate = true;
+        }
+
+        if (Keyboard.isKeyDown(Keyboard.KEY_T)) {
+            rotate = false;
         }
 
 
@@ -281,7 +334,9 @@ public class Project extends AbstractSimpleBase {
         timeOfLastFrame = timeOfThisframe;
 
         colorGradientTime += (int) (timeSinceLastFrame / 10.);
-        currentRotateAngle += timeSinceLastFrame / 10.;
+        if(rotate) {
+            currentRotateAngle += timeSinceLastFrame / 10.;
+        }
         currentTranslation += timeSinceLastFrame / 1000.;
     }
 
@@ -331,44 +386,72 @@ public class Project extends AbstractSimpleBase {
     }
 
     private void drawCube() {
+        glColor3d(1, 1, 1);
+
         glBegin(GL_QUADS);
 
+        glColor3d(1, 1, 1);
+
+
         glNormal3d(0, 0, 1);
+        glTexCoord2f(1, 0);
         glVertex3d(1, 1, 1);
+        glTexCoord2f(0, 0);
         glVertex3d(-1, 1, 1);
+        glTexCoord2f(0, 1);
         glVertex3d(-1, -1, 1);
+        glTexCoord2f(1, 1);
         glVertex3d(1, -1, 1);
 
 
         glNormal3d(0, 0, -1);
+        glTexCoord2f(0, 1);
         glVertex3d(1, -1, -1);
+        glTexCoord2f(1, 1);
         glVertex3d(-1, -1, -1);
+        glTexCoord2f(1, 0);
         glVertex3d(-1, 1, -1);
+        glTexCoord2f(0, 0);
         glVertex3d(1, 1, -1);
-
 
         glNormal3d(0, 1, 0);
+        glTexCoord2f(0, 0);
         glVertex3d(1, 1, -1);
+        glTexCoord2f(0, 1);
         glVertex3d(-1, 1, -1);
+        glTexCoord2f(1, 1);
         glVertex3d(-1, 1, 1);
+        glTexCoord2f(1, 0);
         glVertex3d(1, 1, 1);
 
         glNormal3d(0, -1, 0);
+        glTexCoord2f(0, 0);
         glVertex3d(1, -1, 1);
+        glTexCoord2f(0, 1);
         glVertex3d(-1, -1, 1);
+        glTexCoord2f(1, 1);
         glVertex3d(-1, -1, -1);
+        glTexCoord2f(1, 0);
         glVertex3d(1, -1, -1);
 
         glNormal3d(1, 0, 0);
+        glTexCoord2f(0, 0);
         glVertex3d(1, 1, 1);
+        glTexCoord2f(0, 1);
         glVertex3d(1, -1, 1);
+        glTexCoord2f(1, 1);
         glVertex3d(1, -1, -1);
+        glTexCoord2f(1, 0);
         glVertex3d(1, 1, -1);
 
         glNormal3d(-1, 0, 0);
+        glTexCoord2f(0, 0);
         glVertex3d(-1, 1, -1);
+        glTexCoord2f(0, 1);
         glVertex3d(-1, -1, -1);
+        glTexCoord2f(1, 1);
         glVertex3d(-1, -1, 1);
+        glTexCoord2f(1, 0);
         glVertex3d(-1, 1, 1);
 
         glEnd();
